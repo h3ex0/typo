@@ -1,0 +1,31 @@
+.stats-container {
+  display: flex;
+  gap: 3rem;
+  margin-bottom: 2rem;
+  transition: opacity 0.3s ease;
+}
+
+.stats-container.typing {
+  opacity: 0.1; /* Dim stats while typing for focus */
+}
+
+.stats-container.typing:hover {
+  opacity: 1;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  color: var(--sub-color);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  color: var(--main-color);
+  font-size: 2rem;
+  font-weight: bold;
+}

@@ -1,0 +1,85 @@
+.typing-area-container {
+  position: relative;
+  width: 100%;
+  font-size: 1.5rem;
+  line-height: 1.5;
+  cursor: text;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease;
+}
+
+.typing-area-container.typing {
+  opacity: 1;
+}
+
+.typing-area-container.finished {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.hidden-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.words-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  max-width: 100%;
+}
+
+.char {
+  position: relative;
+  color: var(--sub-color);
+  transition: color 0.1s ease;
+}
+
+.char.correct {
+  color: var(--text-color);
+}
+
+.char.incorrect {
+  color: var(--error-color);
+  text-decoration: underline;
+}
+
+.char.current {
+  color: var(--text-color);
+}
+
+.caret {
+  position: absolute;
+  left: 0;
+  bottom: 0.1em;
+  width: 2px;
+  height: 1.2em;
+  background-color: var(--caret-color);
+  border-radius: 2px;
+}
+
+.focus-notice {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--sub-color);
+  font-size: 1rem;
+  pointer-events: none;
+  background-color: var(--bg-color);
+  padding: 0.5rem 1rem;
+  z-index: 10;
+}
+
+/* Modern, borderless container for the test */
+.test-box {
+  background-color: var(--sub-alt-color);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  margin-top: 2rem;
+}
