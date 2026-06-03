@@ -1,5 +1,5 @@
-// Senior Programmer Approach: Vanilla JS Typing Engine
-// No dependencies, absolute performance, high reliability.
+// Senior Programmer Approach: Vanilla JS Typing Engine v2
+// Advanced features: Ranking, Punctuation/Numbers, Enhanced UI logic.
 
 const languages = {
     english: ["the", "be", "to", "of", "and", "a", "in", "that", "have", "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", "when"],
@@ -9,15 +9,20 @@ const languages = {
 
 class TypoEngine {
     constructor() {
-        this.status = 'idle'; // idle, typing, finished
+        this.status = 'idle';
         this.mode = 'words';
         this.language = 'english';
+        this.settings = {
+            punctuation: false,
+            numbers: false
+        };
         this.targetText = '';
         this.input = '';
         this.startTime = null;
         this.endTime = null;
         this.timer = null;
-        this.history = []; // [{wpm, time}]
+        this.history = [];
+        this.ranking = JSON.parse(localStorage.getItem('ranking')) || [];
         
         this.soundEnabled = localStorage.getItem('sound') === 'true';
         this.audioCtx = null;
@@ -42,10 +47,14 @@ class TypoEngine {
             resultView: document.getElementById('result-view'),
             finalWpm: document.getElementById('final-wpm'),
             finalAcc: document.getElementById('final-acc'),
+            newRecord: document.getElementById('new-record-tag'),
             chart: document.getElementById('wpm-chart'),
             restartBtn: document.getElementById('restart-btn'),
             themeToggle: document.getElementById('theme-toggle'),
             soundToggle: document.getElementById('sound-toggle'),
+            leaderboardBtn: document.getElementById('leaderboard-btn'),
+            leaderboardView: document.getElementById('leaderboard-view'),
+            rankingList: document.getElementById('ranking-list'),
             customModal: document.getElementById('custom-modal'),
             customTextarea: document.getElementById('custom-textarea'),
             customStartBtn: document.getElementById('custom-start-btn'),
@@ -67,19 +76,28 @@ class TypoEngine {
 
         this.nodes.restartBtn.addEventListener('click', () => this.restart());
         
+        // Mode Buttons
         document.querySelectorAll('.mode-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 this.mode = e.target.dataset.mode;
-                if (this.mode === 'custom') {
-                    this.nodes.customModal.style.display = 'flex';
-                } else {
-                    this.restart();
-                }
+                if (this.mode === 'custom') this.nodes.customModal.style.display = 'flex';
+                else this.restart();
             });
         });
 
+        // Setting Toggles
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const setting = e.target.dataset.setting;
+                this.settings[setting] = !this.settings[setting];
+                e.target.classList.toggle('active');
+                this.restart();
+            });
+        });
+
+        // Language Buttons
         document.querySelectorAll('.lang-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
@@ -89,9 +107,18 @@ class TypoEngine {
             });
         });
 
+        // Utility Buttons
         this.nodes.themeToggle.addEventListener('click', () => this.toggleTheme());
         this.nodes.soundToggle.addEventListener('click', () => this.toggleSound());
+        this.nodes.leaderboardBtn.addEventListener('click', () => this.showLeaderboard());
+        
+        this.nodes.leaderboardView.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay') || e.target.classList.contains('close-modal')) {
+                this.nodes.leaderboardView.style.display = 'none';
+            }
+        });
 
+        // Custom Modal
         this.nodes.customStartBtn.addEventListener('click', () => {
             const text = this.nodes.customTextarea.value.trim();
             if (text) {
@@ -108,11 +135,9 @@ class TypoEngine {
             document.querySelector('[data-mode="custom"]').classList.remove('active');
         });
 
+        // Keyboard Logic
         window.addEventListener('keydown', (e) => {
-            if (e.shiftKey && e.key === 'Enter') {
-                this.restart();
-            }
-            // Keyboard visual feedback
+            if (e.shiftKey && e.key === 'Enter') this.restart();
             const keyNode = document.querySelector(`.kb-key[data-key="${e.key.toLowerCase()}"]`);
             if (keyNode) keyNode.classList.add('active');
             if (e.key === ' ') {
@@ -134,20 +159,29 @@ class TypoEngine {
     loadSettings() {
         const pb = localStorage.getItem('pb') || 0;
         this.nodes.pb.textContent = pb;
-        
         const theme = localStorage.getItem('theme') || 'dark';
         this.nodes.body.setAttribute('data-theme', theme);
         this.updateThemeIcons(theme);
-
         this.updateSoundIcons();
     }
 
     generateTest() {
         if (this.mode !== 'custom') {
             const list = languages[this.language];
-            const words = [];
+            let words = [];
             for (let i = 0; i < 25; i++) {
-                words.push(list[Math.floor(Math.random() * list.length)]);
+                let word = list[Math.floor(Math.random() * list.length)];
+                
+                if (this.settings.numbers && Math.random() > 0.8) {
+                    word = Math.floor(Math.random() * 1000).toString();
+                }
+                
+                if (this.settings.punctuation && Math.random() > 0.7) {
+                    const punc = [".", ",", "!", "?", ";", ":"];
+                    word += punc[Math.floor(Math.random() * punc.length)];
+                }
+
+                words.push(word);
             }
             this.targetText = words.join(' ');
         }
@@ -159,13 +193,12 @@ class TypoEngine {
         this.targetText.split(' ').forEach((word, wIdx) => {
             const wordEl = document.createElement('div');
             wordEl.className = 'word';
-            word.split('').forEach((char, cIdx) => {
+            word.split('').forEach((char) => {
                 const charEl = document.createElement('span');
                 charEl.className = 'char';
                 charEl.textContent = char;
                 wordEl.appendChild(charEl);
             });
-            // Add space char after word except last one
             if (wIdx < this.targetText.split(' ').length - 1) {
                 const spaceEl = document.createElement('span');
                 spaceEl.className = 'char';
@@ -180,39 +213,25 @@ class TypoEngine {
     updateCaret() {
         document.querySelectorAll('.char').forEach(el => el.classList.remove('current'));
         const chars = document.querySelectorAll('.char');
-        if (chars[this.input.length]) {
-            chars[this.input.length].classList.add('current');
-        }
+        if (chars[this.input.length]) chars[this.input.length].classList.add('current');
     }
 
     handleInput(e) {
         if (this.status === 'finished') return;
-        
         const value = e.target.value;
-        
-        if (this.status === 'idle' && value.length > 0) {
-            this.startTest();
-        }
-
+        if (this.status === 'idle' && value.length > 0) this.startTest();
         this.input = value;
         this.playClick();
         this.validateInput();
         this.updateCaret();
-
-        if (this.input.length >= this.targetText.length) {
-            this.finishTest();
-        }
+        if (this.input.length >= this.targetText.length) this.finishTest();
     }
 
     validateInput() {
         const chars = document.querySelectorAll('.char');
         chars.forEach((charEl, i) => {
             if (i < this.input.length) {
-                if (this.input[i] === this.targetText[i]) {
-                    charEl.className = 'char correct';
-                } else {
-                    charEl.className = 'char incorrect';
-                }
+                charEl.className = this.input[i] === this.targetText[i] ? 'char correct' : 'char incorrect';
             } else {
                 charEl.className = 'char';
             }
@@ -227,19 +246,13 @@ class TypoEngine {
     }
 
     updateStats() {
-        const now = Date.now();
-        const duration = (now - this.startTime) / 1000;
-        
+        const duration = (Date.now() - this.startTime) / 1000;
         const stats = this.calculateStats(duration);
         this.nodes.wpm.textContent = stats.wpm;
         this.nodes.acc.textContent = stats.acc + '%';
         this.nodes.time.textContent = Math.floor(duration) + 's';
-
-        // History tracking for chart
         const seconds = Math.floor(duration);
-        if (seconds > this.history.length) {
-            this.history.push({ wpm: stats.wpm, time: seconds });
-        }
+        if (seconds > this.history.length) this.history.push({ wpm: stats.wpm, time: seconds });
     }
 
     calculateStats(duration) {
@@ -247,10 +260,8 @@ class TypoEngine {
         for (let i = 0; i < this.input.length; i++) {
             if (this.input[i] === this.targetText[i]) correct++;
         }
-        
         const wpm = duration > 0 ? Math.round((correct / 5) / (duration / 60)) : 0;
         const acc = this.input.length > 0 ? Math.round((correct / this.input.length) * 100) : 100;
-        
         return { wpm, acc };
     }
 
@@ -259,17 +270,51 @@ class TypoEngine {
         this.endTime = Date.now();
         clearInterval(this.timer);
         this.nodes.body.classList.remove('typing');
-        
         const finalStats = this.calculateStats((this.endTime - this.startTime) / 1000);
+        
+        // Save to Ranking
+        this.saveRanking(finalStats.wpm);
         
         // PB Check
         const currentPb = Number(localStorage.getItem('pb')) || 0;
         if (finalStats.wpm > currentPb) {
             localStorage.setItem('pb', finalStats.wpm);
             this.nodes.pb.textContent = finalStats.wpm;
+            this.nodes.newRecord.style.display = 'block';
+        } else {
+            this.nodes.newRecord.style.display = 'none';
         }
 
         this.showResults(finalStats);
+    }
+
+    saveRanking(wpm) {
+        const entry = { wpm, date: new Date().toLocaleDateString() };
+        this.ranking.push(entry);
+        this.ranking.sort((a, b) => b.wpm - a.wpm);
+        this.ranking = this.ranking.slice(0, 10); // Top 10 only
+        localStorage.setItem('ranking', JSON.stringify(this.ranking));
+    }
+
+    showLeaderboard() {
+        this.nodes.rankingList.innerHTML = '';
+        if (this.ranking.length === 0) {
+            this.nodes.rankingList.innerHTML = '<div class="stat-label" style="text-align:center">No rankings yet. Start typing!</div>';
+        } else {
+            this.ranking.forEach((item, i) => {
+                const row = document.createElement('div');
+                row.className = 'ranking-item';
+                row.innerHTML = `
+                    <div class="rank-info">
+                        <span class="rank-number">#${i + 1}</span>
+                        <span class="rank-wpm">${item.wpm} wpm</span>
+                    </div>
+                    <span class="rank-date">${item.date}</span>
+                `;
+                this.nodes.rankingList.appendChild(row);
+            });
+        }
+        this.nodes.leaderboardView.style.display = 'flex';
     }
 
     showResults(stats) {
@@ -289,10 +334,8 @@ class TypoEngine {
         this.nodes.body.classList.remove('typing');
         this.nodes.gameView.style.display = 'flex';
         this.nodes.resultView.style.display = 'none';
-        
         if (!skipGeneration) this.generateTest();
         else this.renderWords();
-
         this.nodes.wpm.textContent = '0';
         this.nodes.acc.textContent = '100%';
         this.nodes.time.textContent = '0s';
@@ -308,13 +351,8 @@ class TypoEngine {
     }
 
     updateThemeIcons(theme) {
-        if (theme === 'dark') {
-            document.querySelector('.sun-icon').style.display = 'block';
-            document.querySelector('.moon-icon').style.display = 'none';
-        } else {
-            document.querySelector('.sun-icon').style.display = 'none';
-            document.querySelector('.moon-icon').style.display = 'block';
-        }
+        document.querySelector('.sun-icon').style.display = theme === 'dark' ? 'block' : 'none';
+        document.querySelector('.moon-icon').style.display = theme === 'dark' ? 'none' : 'block';
     }
 
     toggleSound() {
@@ -325,50 +363,32 @@ class TypoEngine {
     }
 
     updateSoundIcons() {
-        if (this.soundEnabled) {
-            document.querySelector('.volume-on').style.display = 'block';
-            document.querySelector('.volume-off').style.display = 'none';
-        } else {
-            document.querySelector('.volume-on').style.display = 'none';
-            document.querySelector('.volume-off').style.display = 'block';
-        }
+        document.querySelector('.volume-on').style.display = this.soundEnabled ? 'block' : 'none';
+        document.querySelector('.volume-off').style.display = this.soundEnabled ? 'none' : 'block';
     }
 
     initAudio() {
-        if (!this.audioCtx) {
-            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
+        if (!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     }
 
     playClick() {
         if (!this.soundEnabled) return;
         this.initAudio();
-        
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
-        
         osc.type = 'sine';
         osc.frequency.setValueAtTime(150, this.audioCtx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(40, this.audioCtx.currentTime + 0.1);
-        
         gain.gain.setValueAtTime(0.1, this.audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + 0.1);
-        
         osc.connect(gain);
         gain.connect(this.audioCtx.destination);
-        
         osc.start();
         osc.stop(this.audioCtx.currentTime + 0.1);
     }
 
     renderKeyboard() {
-        const layout = [
-            ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
-            ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
-            ['z', 'x', 'c', 'v', 'b', 'n', 'm'],
-            ['space']
-        ];
-
+        const layout = [['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],['z', 'x', 'c', 'v', 'b', 'n', 'm'],['space']];
         this.nodes.keyboard.innerHTML = '';
         layout.forEach(row => {
             const rowEl = document.createElement('div');
@@ -386,32 +406,20 @@ class TypoEngine {
 
     drawChart() {
         if (this.history.length < 2) return;
-        
         const svg = this.nodes.chart;
         const width = svg.clientWidth || 600;
         const height = 200;
         const padding = 20;
-
         const maxWpm = Math.max(...this.history.map(h => h.wpm), 10);
         const timeRange = this.history.length;
-
         let points = '';
         this.history.forEach((h, i) => {
             const x = padding + (i / (timeRange - 1)) * (width - 2 * padding);
             const y = height - padding - (h.wpm / maxWpm) * (height - 2 * padding);
             points += `${x},${y} `;
         });
-
-        svg.innerHTML = `
-            <polyline points="${points}" />
-            <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="var(--sub-alt-color)" stroke-width="1" />
-            <text x="${padding}" y="${height - 5}" fill="var(--sub-color)" font-size="10">0s</text>
-            <text x="${width - padding - 20}" y="${height - 5}" fill="var(--sub-color)" font-size="10">${timeRange}s</text>
-        `;
+        svg.innerHTML = `<polyline points="${points}" /><line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="var(--sub-alt-color)" stroke-width="1" /><text x="${padding}" y="${height - 5}" fill="var(--sub-color)" font-size="10">0s</text><text x="${width - padding - 20}" y="${height - 5}" fill="var(--sub-color)" font-size="10">${timeRange}s</text>`;
     }
 }
 
-// Initialize the application when the DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.typo = new TypoEngine();
-});
+document.addEventListener('DOMContentLoaded', () => { window.typo = new TypoEngine(); });

@@ -17,37 +17,52 @@
                 <span class="logo-text">typo</span>
             </div>
 
-            <div class="controls">
-                <div class="mode-selector">
-                    <button class="mode-btn active" data-mode="words">words</button>
-                    <button class="mode-btn" data-mode="time">time</button>
-                    <button class="mode-btn" data-mode="custom">custom</button>
+            <div class="controls-wrapper">
+                <div class="controls">
+                    <div class="mode-selector">
+                        <button class="mode-btn active" data-mode="words">words</button>
+                        <button class="mode-btn" data-mode="time">time</button>
+                        <button class="mode-btn" data-mode="custom">custom</button>
+                    </div>
+                    
+                    <div class="divider"></div>
+
+                    <div class="settings-toggles">
+                        <button class="toggle-btn" data-setting="punctuation">punctuation</button>
+                        <button class="toggle-btn" data-setting="numbers">numbers</button>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="language-selector">
+                        <button class="lang-btn active" data-lang="english">english</button>
+                        <button class="lang-btn" data-lang="spanish">spanish</button>
+                        <button class="lang-btn" data-lang="programming">programming</button>
+                    </div>
                 </div>
-                
-                <div class="divider"></div>
 
-                <div class="language-selector">
-                    <button class="lang-btn active" data-lang="english">english</button>
-                    <button class="lang-btn" data-lang="spanish">spanish</button>
-                    <button class="lang-btn" data-lang="programming">programming</button>
+                <div class="utility-btns">
+                    <button id="theme-toggle" class="icon-btn" title="Toggle Theme">
+                        <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M4.93 4.93l1.41 1.41"></path><path d="M17.66 17.66l1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="M6.34 17.66l-1.41 1.41"></path><path d="M19.07 4.93l-1.41 1.41"></path></svg>
+                        <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+                    </button>
+
+                    <button id="sound-toggle" class="icon-btn" title="Toggle Sound">
+                        <svg class="volume-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                        <svg class="volume-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+                    </button>
+                    
+                    <button id="leaderboard-btn" class="icon-btn" title="View Ranking">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>
+                    </button>
                 </div>
-
-                <div class="divider"></div>
-
-                <button id="theme-toggle" class="icon-btn">
-                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M4.93 4.93l1.41 1.41"></path><path d="M17.66 17.66l1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="M6.34 17.66l-1.41 1.41"></path><path d="M19.07 4.93l-1.41 1.41"></path></svg>
-                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
-                </button>
-
-                <button id="sound-toggle" class="icon-btn">
-                    <svg class="volume-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-                    <svg class="volume-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
-                </button>
             </div>
         </header>
 
-        <div class="pb-display">
-            personal best: <span id="pb-value">0</span> wpm
+        <div class="top-row">
+            <div class="pb-display">
+                personal best: <span id="pb-value">0</span> wpm
+            </div>
         </div>
 
         <main id="game-view">
@@ -85,6 +100,7 @@
                     <span class="stat-label">accuracy</span>
                     <span id="final-acc" class="stat-value-large">0%</span>
                 </div>
+                <div id="new-record-tag" style="display:none;" class="new-record">New Record!</div>
             </div>
             
             <div class="chart-box">
@@ -95,6 +111,18 @@
                 <button id="restart-btn" class="primary-btn">Try Again</button>
             </div>
         </main>
+
+        <div id="leaderboard-view" class="modal-overlay" style="display:none;">
+            <div class="modal ranking-modal">
+                <div class="modal-header">
+                    <h3>local ranking</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div id="ranking-list" class="ranking-list">
+                    <!-- Ranked items will be injected here -->
+                </div>
+            </div>
+        </div>
 
         <footer class="ui-frame">
             <div class="shortcuts">
